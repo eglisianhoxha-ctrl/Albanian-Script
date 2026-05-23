@@ -1,7 +1,30 @@
--- Kick A Lucky Block - Rayfield UI Script
+
+-- Kick A Lucky Block - WindUI Script
 -- Features: Auto Train, God Mode, Auto Collect, Auto Upgrade
 
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+-- Attempt to load Rayfield first (compat), then WindUI, else continue with whatever loaded UI.
+local Rayfield
+do
+    local ok, lib = pcall(function()
+        return loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+    end)
+    if ok and lib then
+        Rayfield = lib
+    else
+        local ok2, wind = pcall(function()
+            -- Replace the URL below with a valid WindUI CDN/raw URL if you have one.
+            return loadstring(game:HttpGet('https://example.com/windui'))()
+        end)
+        if ok2 and wind then
+            Rayfield = wind
+        else
+            -- If neither UI loaded, create a minimal shim so script won't error on calls.
+            Rayfield = {}
+            function Rayfield:CreateWindow() return { CreateTab = function() return { CreateSection = function() end, CreateToggle = function() end, CreateSlider = function() end, CreateButton = function() end, CreateLabel = function() end } end end
+            function Rayfield:Notify(params) end
+        end
+    end
+end
 
 local Window = Rayfield:CreateWindow({
     Name = "Kick A Lucky Block Hub",
@@ -33,8 +56,49 @@ local Settings = {
     GodMode = false,
     AutoCollect = false,
     AutoUpgrade = false,
-    AutoUpgradeDelay = 0.5
+    AutoUpgradeDelay = 0.5,
+    CollectionRange = 50
 }
+
+-- Utility: attempt multiple ways to activate a GUI button/tool
+local function safeActivate(target)
+    if not target then return end
+    pcall(function()
+        if type(target.Activate) == "function" then
+            target:Activate()
+            return
+        end
+    end)
+    pcall(function()
+        if target.MouseButton1Click and type(target.MouseButton1Click.Fire) == "function" then
+            target.MouseButton1Click:Fire()
+            return
+        end
+    end)
+    pcall(function()
+        if target.Fire and type(target.Fire) == "function" then
+            target:Fire()
+            return
+        end
+    end)
+end
+
+local function safeEquip(tool)
+    if not tool then return end
+    pcall(function()
+        if tool:IsA and tool:IsA("Tool") then
+            local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+            if humanoid and humanoid.EquipTool then
+                humanoid:EquipTool(tool)
+                return
+            end
+            if type(tool.Activate) == "function" then
+                tool:Activate()
+                return
+            end
+        end
+    end)
+end
 
 -- Tabs
 local TrainTab = Window:CreateTab("🏋️ Auto Train", 4483362458)
@@ -55,6 +119,10 @@ TrainTab:CreateToggle({
             Duration = 2,
             Image = 4483362458
         })
+        if Value and (trainCoroutine == nil or coroutine.status(trainCoroutine) == "dead") then
+            trainCoroutine = coroutine.create(autoTrain)
+            coroutine.resume(trainCoroutine)
+        end
     end
 })
 
@@ -73,11 +141,11 @@ TrainTab:CreateButton({
     Name = "Hold Dumbell",
     Callback = function()
         local function findDumbell()
-            local backpack = character:FindFirstChild("Backpack")
+            local backpack = player:FindFirstChild("Backpack")
             if backpack then
                 for _, item in pairs(backpack:GetChildren()) do
-                    if item:IsA("Tool") and item.Name:lower():find("dumb") or item.Name:lower():find("barbell") then
-                        item:Activate()
+                        if item:IsA("Tool") and (item.Name:lower():find("dumb") or item.Name:lower():find("barbell")) then
+                        safeEquip(item)
                         return true
                     end
                 end
@@ -99,12 +167,12 @@ local autoTrainConnection
 local function autoTrain()
     while Settings.AutoTrain do
         pcall(function()
-            local backpack = character:FindFirstChild("Backpack")
+            local backpack = player:FindFirstChild("Backpack")
             if backpack then
                 for _, item in pairs(backpack:GetChildren()) do
-                    if item:IsA("Tool") and (item.Name:lower():find("dumb") or item.Name:lower():find("barbell")) then
+                        if item:IsA("Tool") and (item.Name:lower():find("dumb") or item.Name:lower():find("barbell")) then
                         if character:FindFirstChildOfClass("Tool") == nil then
-                            item:Activate()
+                            safeEquip(item)
                         end
                     end
                 end
@@ -115,8 +183,9 @@ local function autoTrain()
             if gui then
                 for _, descendant in pairs(gui:GetDescendants()) do
                     if descendant:IsA("TextButton") and (descendant.Text:find("×2") or descendant.Text:find("x2")) and descendant.BackgroundColor3 == Color3.fromRGB(128, 0, 128) then
-                        descendant:FireEvent("MouseButton1Click")
-                        descendant:FireEvent("Activated")
+                        pcall(function()
+                            safeActivate(descendant)
+                        end)
                     end
                 end
             end
@@ -208,6 +277,10 @@ CollectTab:CreateToggle({
             Duration = 2,
             Image = 4483362458
         })
+        if Value and (collectCoroutine == nil or coroutine.status(collectCoroutine) == "dead") then
+            collectCoroutine = coroutine.create(autoCollect)
+            coroutine.resume(collectCoroutine)
+        end
     end
 })
 
@@ -217,15 +290,21 @@ local function autoCollect()
     while Settings.AutoCollect do
         pcall(function()
             local workspace = game:GetService("Workspace")
+            local range = Settings.CollectionRange or 50
             
-            -- Find money/currency objects
             for _, part in pairs(workspace:GetDescendants()) do
                 if Settings.AutoCollect then
-                    -- Check for money objects (adjust names based on game)
-                    if part:IsA("Part") or part:IsA("Model") then
-                        if part.Name:lower():find("money") or part.Name:lower():find("cash") or part.Name:lower():find("coin") then
-                            if (part.Position - character.HumanoidRootPart.Position).Magnitude < 50 then
-                                character.HumanoidRootPart.CFrame = part.CFrame
+                    local isMoney = part.Name:lower():find("money") or part.Name:lower():find("cash") or part.Name:lower():find("coin") or part.Name:lower():find("gem")
+                    if isMoney then
+                        local targetPos
+                        if part:IsA("Model") then
+                            targetPos = part.PrimaryPart and part.PrimaryPart.Position
+                        elseif part:IsA("BasePart") then
+                            targetPos = part.Position
+                        end
+                        if targetPos and character:FindFirstChild("HumanoidRootPart") then
+                            if (targetPos - character.HumanoidRootPart.Position).Magnitude <= range then
+                                character.HumanoidRootPart.CFrame = CFrame.new(targetPos)
                                 wait(0.1)
                             end
                         end
@@ -258,7 +337,7 @@ CollectTab:CreateSlider({
     Suffix = " studs",
     CurrentValue = 50,
     Callback = function(Value)
-        -- Collection range setting can be used in the loop above
+        Settings.CollectionRange = Value
     end
 })
 
@@ -275,6 +354,10 @@ UpgradeTab:CreateToggle({
             Duration = 2,
             Image = 4483362458
         })
+        if Value and (upgradeCoroutine == nil or coroutine.status(upgradeCoroutine) == "dead") then
+            upgradeCoroutine = coroutine.create(autoUpgrade)
+            coroutine.resume(upgradeCoroutine)
+        end
     end
 })
 
@@ -299,13 +382,14 @@ local function autoUpgrade()
                 for _, descendant in pairs(gui:GetDescendants()) do
                     if Settings.AutoUpgrade then
                         -- Look for upgrade buttons
-                        if descendant:IsA("TextButton") then
+                            if descendant:IsA("TextButton") then
                             if descendant.Name:lower():find("upgrade") or descendant.Text:lower():find("upgrade") then
-                                if descendant.Visible and descendant.Parent.Visible then
-                                    descendant:FireEvent("MouseButton1Click")
-                                    descendant:FireEvent("Activated")
-                                    wait(0.05)
-                                end
+                                if descendant.Visible and (descendant.Parent and descendant.Parent.Visible) then
+                                pcall(function()
+                                    safeActivate(descendant)
+                                end)
+                                wait(0.05)
+                            end
                             end
                         end
                     end
@@ -338,7 +422,9 @@ UpgradeTab:CreateButton({
             for _, descendant in pairs(gui:GetDescendants()) do
                 if descendant:IsA("TextButton") and (descendant.Name:lower():find("upgrade") or descendant.Text:lower():find("upgrade")) then
                     if descendant.Visible then
-                        descendant:FireEvent("MouseButton1Click")
+                        pcall(function()
+                            safeActivate(descendant)
+                        end)
                     end
                 end
             end

@@ -1,4 +1,4 @@
-# Kick A Lucky Block - Rayfield UI Script
+# Kick A Lucky Block - WindUI Script
 
 A comprehensive Roblox script for the game "Kick A Lucky Block" with multiple automation features.
 
@@ -29,7 +29,7 @@ A comprehensive Roblox script for the game "Kick A Lucky Block" with multiple au
 1. **Copy the script**: Copy the content of `KickALuckyBlock.lua`
 2. **Open Executor**: Use any Roblox script executor (Synapse X, Krnl, etc.)
 3. **Paste & Execute**: Paste the script into the executor and run it
-4. **Rayfield UI Loads**: The Rayfield UI will appear on your screen
+4. **WindUI Loads**: The WindUI will appear on your screen
 
 ## Features Usage
 
@@ -65,7 +65,7 @@ The script auto-saves your configuration in VS Code folder: `KickALuckyBlockHub`
 ## Requirements
 
 - Roblox script executor capable of running Lua
-- Rayfield UI library (loaded automatically from CDN)
+- WindUI library (loaded automatically from CDN or configured in the script)
 - Access to execute scripts in Roblox
 
 ## Important Notes
@@ -83,8 +83,8 @@ The script auto-saves your configuration in VS Code folder: `KickALuckyBlockHub`
 
 ## Troubleshooting
 
-**"Script not working?"**
-- Make sure your executor supports Rayfield
+- **"Script not working?"**
+- Make sure your executor supports WindUI (or configure the WindUI URL in the script)
 - Check if the game interface matches the script (button names, etc.)
 - Try clicking "Stop All Scripts" and re-enabling features
 

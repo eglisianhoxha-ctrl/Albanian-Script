@@ -45,8 +45,8 @@
 
 ## Common Issues & Fixes
 
-**"Rayfield didn't load"**
-- Your executor doesn't support Rayfield
+**"WindUI didn't load"**
+- Your executor doesn't support WindUI (or configure the WindUI URL in the script)
 - Try a different executor
 
 **"Auto Train not clicking button"**
