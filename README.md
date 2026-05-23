@@ -1,4 +1,4 @@
-# Kick A Lucky Block - WindUI Script
+# Albanian Script | Kick a Lucky Block
 
 A comprehensive Roblox script for the game "Kick A Lucky Block" with multiple automation features.
 

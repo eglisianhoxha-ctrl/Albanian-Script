@@ -1,5 +1,5 @@
 
--- Kick A Lucky Block - WindUI Script
+-- Albanian Script | Kick a Lucky Block - WindUI Script
 -- Features: Auto Train, God Mode, Auto Collect, Auto Upgrade
 
 -- Attempt to load Rayfield first (compat), then WindUI, else continue with whatever loaded UI.
@@ -27,7 +27,7 @@ do
 end
 
 local Window = Rayfield:CreateWindow({
-    Name = "Kick A Lucky Block Hub",
+    Name = "Albanian Script | Kick a Lucky Block",
     LoadingTitle = "Loading...",
     LoadingSubtitle = "by Copilot",
     ConfigurationSaving = {
@@ -464,7 +464,7 @@ MiscTab:CreateButton({
 })
 
 MiscTab:CreateLabel("Script Version: 1.0")
-MiscTab:CreateLabel("Game: Kick A Lucky Block")
+MiscTab:CreateLabel("Game: Kick a Lucky Block")
 
 -- Handle character respawn
 player.CharacterAdded:Connect(function(newCharacter)
@@ -488,7 +488,7 @@ end)
 
 Rayfield:Notify({
     Title = "Script Loaded",
-    Content = "Kick A Lucky Block Hub is ready! ✓",
+    Content = "Albanian Script | Kick a Lucky Block is ready! ✓",
     Duration = 3,
     Image = 4483362458
 })
