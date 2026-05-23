@@ -2,27 +2,16 @@
 -- Albanian Script | Kick a Lucky Block - WindUI Script
 -- Features: Auto Train, God Mode, Auto Collect, Auto Upgrade
 
--- Attempt to load Rayfield first (compat), then WindUI, else continue with whatever loaded UI.
+-- Load Rayfield UI Library
 local Rayfield
 do
     local ok, lib = pcall(function()
-        return loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+        return loadstring(game:HttpGet('https://github.com/shlexware/Rayfield/releases/latest/download/Library.lua'))()
     end)
     if ok and lib then
         Rayfield = lib
     else
-        local ok2, wind = pcall(function()
-            -- Replace the URL below with a valid WindUI CDN/raw URL if you have one.
-            return loadstring(game:HttpGet('https://example.com/windui'))()
-        end)
-        if ok2 and wind then
-            Rayfield = wind
-        else
-            -- If neither UI loaded, create a minimal shim so script won't error on calls.
-            Rayfield = {}
-            function Rayfield:CreateWindow() return { CreateTab = function() return { CreateSection = function() end, CreateToggle = function() end, CreateSlider = function() end, CreateButton = function() end, CreateLabel = function() end } end end
-            function Rayfield:Notify(params) end
-        end
+        error("Failed to load Rayfield library. Make sure you have internet access.")
     end
 end
 

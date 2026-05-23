@@ -29,7 +29,7 @@ A comprehensive Roblox script for the game "Kick A Lucky Block" with multiple au
 1. **Copy the script**: Copy the content of `KickALuckyBlock.lua`
 2. **Open Executor**: Use any Roblox script executor (Synapse X, Krnl, etc.)
 3. **Paste & Execute**: Paste the script into the executor and run it
-4. **WindUI Loads**: The WindUI will appear on your screen
+4. **Rayfield Loads**: The Rayfield UI will appear on your screen
 
 ## Features Usage
 
